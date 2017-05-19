@@ -5,6 +5,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -13,14 +14,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
-import com.google.android.gms.plus.model.people.Person;
-
-import org.json.JSONObject;
-
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,7 +34,7 @@ public class Registeration extends AppCompatActivity {
     EditText eroom, elocality, ecity, estate, ecountry, ezip;
     Button bregister;
     private Spinner spinner1, spinner2, spinner3;
-    Address address;
+   com.example.campushaatapp.Address address;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,10 +57,25 @@ public class Registeration extends AppCompatActivity {
                 if (!validate())
                     Toast.makeText(getApplicationContext(),"Invalid Credentials",Toast.LENGTH_LONG).show();
                 else
-                    Toast.makeText(getApplicationContext(),"I like to move it move it !",Toast.LENGTH_LONG).show();
+                {Toast.makeText(getApplicationContext(),"I like to move it move it !",Toast.LENGTH_LONG).show();
+                    new HttpAsyncTask().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress ");}
             }
         });
 
+    }
+
+    private class HttpAsyncTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+
+
+            return POST(urls[0]);
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+        }
     }
 
     public void addListenerOnSpinnerItemSelection() {
@@ -129,7 +149,7 @@ public class Registeration extends AppCompatActivity {
             valid=false;
         }
         */
-        if(zip.isEmpty() || !checkZip(zip) || zip.length()>7)
+        if(zip.isEmpty() || !checkZip(zip) || zip.length() > 8)
         {
             ezip.setError("Enter Valid Postal Code");
             valid=false;
@@ -174,7 +194,7 @@ public class Registeration extends AppCompatActivity {
         return result.toString();
     }
 
-    public static String POST(String url, Person person){
+    public String POST(String url){
         InputStream inputStream = null;
         String result = "";
         try {
@@ -188,9 +208,15 @@ public class Registeration extends AppCompatActivity {
             String json = "";
 
             // 3. build jsonObject
-            jsonObject.accumulate("name", person.getName());
-            jsonObject.accumulate("country", person.getCountry());
-            jsonObject.accumulate("twitter", person.getTwitter());
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.accumulate("room", eroom.getText().toString());
+            jsonObject.accumulate("locality", elocality.getText().toString());
+            jsonObject.accumulate("city", "1");
+            jsonObject.accumulate("state","1");
+            jsonObject.accumulate("zipCode",getPostalCode(Coordinates.curLatitude,Coordinates.curLongitude));
+            jsonObject.accumulate("country","1");
+            jsonObject.accumulate("longitude",""+Coordinates.curLongitude);
+            jsonObject.accumulate("lattitude",""+Coordinates.curLatitude);
             // 4. convert JSONObject to JSON to String
             json = jsonObject.toString();
 
@@ -235,6 +261,18 @@ public class Registeration extends AppCompatActivity {
             return true;
         else
             return false;
+    }
+
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException{
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+
+        inputStream.close();
+        return result;
+
     }
 
 }
