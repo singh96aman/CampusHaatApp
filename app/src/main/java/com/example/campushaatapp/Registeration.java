@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -57,8 +58,12 @@ public class Registeration extends AppCompatActivity {
                 if (!validate())
                     Toast.makeText(getApplicationContext(),"Invalid Credentials",Toast.LENGTH_LONG).show();
                 else
-                {Toast.makeText(getApplicationContext(),"I like to move it move it !",Toast.LENGTH_LONG).show();
-                    new HttpAsyncTask().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress ");}
+                {   isConnected();
+                    Toast.makeText(getApplicationContext(),"I like to move it move it !",Toast.LENGTH_LONG).show();
+                    new HttpAsyncTask().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress ");
+                    new HttpAsyncTask2().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress ");
+                }
+
             }
         });
 
@@ -67,14 +72,53 @@ public class Registeration extends AppCompatActivity {
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
-
-
             return POST(urls[0]);
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
             Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public static String GET(String url){
+        InputStream inputStream = null;
+        String result = "";
+        try {
+
+            // create HttpClient
+            HttpClient httpclient = new DefaultHttpClient();
+
+            // make GET request to the given URL
+            HttpResponse httpResponse = httpclient.execute(new HttpGet(url));
+
+            // receive response as inputStream
+            inputStream = httpResponse.getEntity().getContent();
+
+            // convert inputstream to string
+            if(inputStream != null)
+                result = convertInputStreamToString(inputStream);
+            else
+                result = "Did not work!";
+
+        } catch (Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());
+        }
+
+        return result;
+    }
+
+    private class HttpAsyncTask2 extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+
+            return GET(urls[0]);
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
+            Log.d("debug",result);
         }
     }
 
@@ -219,6 +263,7 @@ public class Registeration extends AppCompatActivity {
             jsonObject.accumulate("lattitude",""+Coordinates.curLatitude);
             // 4. convert JSONObject to JSON to String
             json = jsonObject.toString();
+            Log.d("debugjson",json);
 
             // ** Alternative way to convert Person object to JSON string usin Jackson Lib
             // ObjectMapper mapper = new ObjectMapper();
@@ -254,13 +299,11 @@ public class Registeration extends AppCompatActivity {
         return result;
     }
 
-    public boolean isConnected(){
+    public void isConnected(){
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected())
-            return true;
-        else
-            return false;
+        if (!(networkInfo != null && networkInfo.isConnected()))
+            Toast.makeText(getApplicationContext(),"Connect to Internet",Toast.LENGTH_LONG).show();
     }
 
     private static String convertInputStreamToString(InputStream inputStream) throws IOException{

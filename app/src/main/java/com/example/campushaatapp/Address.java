@@ -5,6 +5,7 @@ package com.example.campushaatapp;
  */
 
 public class Address {
+
     private String addressId;
     private String room;
     private String locality;
