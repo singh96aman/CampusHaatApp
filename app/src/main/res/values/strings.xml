@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">CampusHaatApp</string>
     <string name="title_activity_maps">Map</string>
-        <string name="country_prompt">Choose a country</string>
-        <string name="city_prompt">Choose a city</string>
-        <string name="state_prompt">Choose a State</string>
+    <string name="country_prompt">Choose a country</string>
+    <string name="city_prompt">Choose a city</string>
+    <string name="state_prompt">Choose a State</string>
 
-        <string-array name="cities">
-            <item>Your City</item>
-        </string-array>
+    <string-array name="cities">
+        <item>Your City</item>
+    </string-array>
 
     <string-array name="state">
         <item>Your State</item>
@@ -17,4 +17,4 @@
         <item>India</item>
     </string-array>
 
-    </resources>
+</resources>

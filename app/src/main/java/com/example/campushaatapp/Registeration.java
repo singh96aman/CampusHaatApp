@@ -1,11 +1,11 @@
 package com.example.campushaatapp;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,18 +15,13 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Locale;
 
@@ -41,6 +36,7 @@ public class Registeration extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registeration);
+        RequestQueue queue = Volley.newRequestQueue(this);
 
         eroom = (EditText) findViewById(R.id.input_room);
         elocality = (EditText) findViewById(R.id.input_locality);
@@ -60,14 +56,40 @@ public class Registeration extends AppCompatActivity {
                 else
                 {   isConnected();
                     Toast.makeText(getApplicationContext(),"I like to move it move it !",Toast.LENGTH_LONG).show();
-                    new HttpAsyncTask().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress ");
-                    new HttpAsyncTask2().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress ");
+                    //new HttpAsyncTask().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress");
+                    //new HttpAsyncTask2().execute("http://ec2-35-154-15-217.ap-south-1.compute.amazonaws.com:8080/campushaatTestAPI/webapi/users/createAddress");
+                    Intent i = new Intent(Registeration.this,CompleteRegister.class);
+                    i.putExtra("room", eroom.getText().toString());
+                    i.putExtra("locality",elocality.getText().toString());
+                    i.putExtra("city", "1");
+                    i.putExtra("state","1");
+                    i.putExtra("zipCode",getPostalCode(Coordinates.curLatitude,Coordinates.curLongitude));
+                    i.putExtra("country","1");
+                    i.putExtra("longitude",""+Coordinates.curLongitude);
+                    i.putExtra("lattitude",""+Coordinates.curLatitude);
+                    JSONObject jsonObject = new JSONObject();
+                    try {
+                        jsonObject.accumulate("room", eroom.getText().toString());
+                        jsonObject.accumulate("locality", elocality.getText().toString());
+                        jsonObject.accumulate("city", "1");
+                        jsonObject.accumulate("state","1");
+                        jsonObject.accumulate("zipCode",getPostalCode(Coordinates.curLatitude,Coordinates.curLongitude));
+                        jsonObject.accumulate("country","1");
+                        jsonObject.accumulate("longitude",""+Coordinates.curLongitude);
+                        jsonObject.accumulate("lattitude",""+Coordinates.curLatitude);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    startActivity(i);
                 }
 
             }
         });
 
     }
+
+    /*
 
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
         @Override
@@ -122,6 +144,7 @@ public class Registeration extends AppCompatActivity {
         }
     }
 
+     */
     public void addListenerOnSpinnerItemSelection() {
         spinner1 = (Spinner) findViewById(R.id.spinner1);
         spinner1.setOnItemSelectedListener(new CustomOnItemSelectedListener());
@@ -229,7 +252,7 @@ public class Registeration extends AppCompatActivity {
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
             if (addresses.size() > 0) {
                 android.location.Address address = addresses.get(0);
-                result.append(address.getPostalCode()).append("\n");
+                result.append(address.getPostalCode());
             }
         } catch (IOException e) {
             Log.e("tag", e.getMessage());
@@ -237,12 +260,13 @@ public class Registeration extends AppCompatActivity {
 
         return result.toString();
     }
-
+    /*
     public String POST(String url){
         InputStream inputStream = null;
         String result = "";
+        Log.d("debug","I am here");
         try {
-
+            Log.d("debug","Now, I am here");
             // 1. create HttpClient
             HttpClient httpclient = new DefaultHttpClient();
 
@@ -299,13 +323,6 @@ public class Registeration extends AppCompatActivity {
         return result;
     }
 
-    public void isConnected(){
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (!(networkInfo != null && networkInfo.isConnected()))
-            Toast.makeText(getApplicationContext(),"Connect to Internet",Toast.LENGTH_LONG).show();
-    }
-
     private static String convertInputStreamToString(InputStream inputStream) throws IOException{
         BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
         String line = "";
@@ -317,5 +334,14 @@ public class Registeration extends AppCompatActivity {
         return result;
 
     }
+    */
+
+    public void isConnected(){
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (!(networkInfo != null && networkInfo.isConnected()))
+            Toast.makeText(getApplicationContext(),"Connect to Internet",Toast.LENGTH_LONG).show();
+    }
+
 
 }

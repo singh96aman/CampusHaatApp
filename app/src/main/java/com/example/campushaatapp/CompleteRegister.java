@@ -1,13 +1,8 @@
 package com.example.campushaatapp;
 
-
-import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +12,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -39,28 +35,25 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class CompleteRegister extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener{
 
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
-    Button bsave;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
+    Button see;
+
+    TextView room,city,state,zipcode,country;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        bsave = (Button) findViewById(R.id.save);
+        setContentView(R.layout.activity_complete_register);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
@@ -68,29 +61,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         displayLocationSettingsRequest(getApplicationContext());
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+                .findFragmentById(R.id.map2);
         mapFragment.getMapAsync(this);
 
-        bsave.setOnClickListener(new View.OnClickListener() {
+        see = (Button) findViewById(R.id.see);
+        see.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MapsActivity.this,Registeration.class);
-                startActivity(i);
+                Toast.makeText(getApplicationContext(),"Redirected to Map",Toast.LENGTH_LONG).show();
             }
         });
 
+        room = (TextView) findViewById(R.id.input_room2);
+        country = (TextView) findViewById(R.id.input_country2);
+        city = (TextView) findViewById(R.id.input_city2);
+        state = (TextView) findViewById(R.id.input_state2);
+        zipcode = (TextView) findViewById(R.id.input_zipcode2);
+
+        String r,c,cc,s,z;
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                r=null;
+                c=null;
+                cc=null;
+                s=null;
+                z=null;
+            } else {
+                room.setText(extras.getString("room"));
+                country.setText("India");
+                city.setText("Your City");
+                state.setText("Your State");
+                zipcode.setText(extras.getString("zipCode"));
+
+
+            }
+        } else {
+            room.setText(savedInstanceState.getSerializable("room").toString());
+            country.setText(savedInstanceState.getSerializable("country").toString());
+            city.setText(savedInstanceState.getSerializable("city").toString());
+            state.setText(savedInstanceState.getSerializable("state").toString());
+            zipcode.setText(savedInstanceState.getSerializable("zipCode").toString());
+
+        }
+
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -99,7 +115,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
                 buildGoogleApiClient();
                 mMap.setMyLocationEnabled(true);
@@ -128,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
@@ -139,26 +155,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onConnectionSuspended(int i) {
 
     }
-
-    private String getAddress(double latitude, double longitude) {
-        StringBuilder result = new StringBuilder();
-        try {
-            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            if (addresses.size() > 0) {
-                android.location.Address address = addresses.get(0);
-                result.append("City :").append(address.getLocality()).append("\n");
-                result.append("Localty :").append(address.getSubLocality()).append("\n");
-                result.append("Country :").append(address.getCountryName()).append("\n");
-                result.append("Postal Code :").append(address.getPostalCode()).append("\n");
-            }
-        } catch (IOException e) {
-            Log.e("tag", e.getMessage());
-        }
-
-        return result.toString();
-    }
-
     @Override
     public void onLocationChanged(Location location) {
 
@@ -179,8 +175,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markerOptions.position(latLng);
         markerOptions.title("Current Position");
         //Toast.makeText(getApplicationContext(),""+location.getLatitude()+","+location.getLongitude(),Toast.LENGTH_LONG).show();
-        String temp = getAddress(location.getLatitude(),location.getLongitude());
-        Toast.makeText(getApplicationContext(),temp,Toast.LENGTH_LONG).show();
+        //String temp = getAddress(location.getLatitude(),location.getLongitude());
+        //Toast.makeText(getApplicationContext(),temp,Toast.LENGTH_LONG).show();
 
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
         mCurrLocationMarker = mMap.addMarker(markerOptions);
@@ -204,12 +200,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     public boolean checkLocationPermission(){
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
             // Asking user if explanation is needed
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
 
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
@@ -217,14 +213,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //Prompt the user once explanation has been shown
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                         MY_PERMISSIONS_REQUEST_LOCATION);
 
 
             } else {
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                         MY_PERMISSIONS_REQUEST_LOCATION);
             }
             return false;
@@ -245,7 +241,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // permission was granted. Do the
                     // contacts-related task you need to do.
                     if (ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            android.Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
 
                         if (mGoogleApiClient == null) {
@@ -295,7 +291,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         try {
                             // Show the dialog by calling startResolutionForResult(), and check the result
                             // in onActivityResult().
-                            status.startResolutionForResult(MapsActivity.this, REQUEST_CHECK_SETTINGS);
+                            status.startResolutionForResult(CompleteRegister.this, REQUEST_CHECK_SETTINGS);
                         } catch (IntentSender.SendIntentException e) {
                             Log.i("debug", "PendingIntent unable to execute request.");
                         }
@@ -308,4 +304,3 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 }
-
